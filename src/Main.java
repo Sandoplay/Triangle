@@ -1,22 +1,37 @@
+import java.io.PrintStream;
 
-/*
-  @author   george
-  @project   Default (Template) Project
-  @class  ${NAME}
-  @version  1.0.0 
-  @since 05/09/2026 - 20.16
-*/
+/** Demonstrates triangle calculations with optional command-line side lengths. */
+public final class Main {
+    private Main() {
+    }
 
-//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
-// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
-void main() {
-    //TIP Press <shortcut actionId="ShowIntentionActions"/> with your caret at the highlighted text
-    // to see how IntelliJ IDEA suggests fixing it.
-    IO.println(String.format("Hello and welcome!"));
+    public static void main(String[] args) {
+        int exitCode = run(args, System.out, System.err);
+        if (exitCode != 0) {
+            System.exit(exitCode);
+        }
+    }
 
-    for (int i = 1; i <= 5; i++) {
-        //TIP Press <shortcut actionId="Debug"/> to start debugging your code. We have set one <icon src="AllIcons.Debugger.Db_set_breakpoint"/> breakpoint
-        // for you, but you can always add more by pressing <shortcut actionId="ToggleLineBreakpoint"/>.
-        IO.println("i = " + i);
+    static int run(String[] args, PrintStream output, PrintStream errors) {
+        if (args.length != 0 && args.length != 3) {
+            errors.println("Usage: java -cp out Main [a b c]");
+            return 1;
+        }
+
+        try {
+            Triangle triangle = args.length == 0
+                ? new Triangle(3.0, 4.0, 5.0)
+                : new Triangle(Double.parseDouble(args[0]), Double.parseDouble(args[1]),
+                    Double.parseDouble(args[2]));
+
+            output.println(triangle);
+            output.println("Perimeter: " + triangle.perimeter());
+            output.println("Area: " + triangle.area());
+            output.println("Equilateral: " + triangle.isEquilateral());
+            return 0;
+        } catch (IllegalArgumentException exception) {
+            errors.println("Invalid triangle: " + exception.getMessage());
+            return 1;
+        }
     }
 }
