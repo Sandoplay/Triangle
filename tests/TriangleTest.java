@@ -1,9 +1,9 @@
 /*
-  @author   Sandoplay
-  @project  Triangle
-  @class    TriangleTest
-  @version  1.0.0
-  @since    08/10/2026
+ @author Sandoplay
+ @project Triangle
+ @class TriangleTest
+ @version 1.0.0
+ @since 08.10.2026 - 22.33
 */
 
 import java.io.ByteArrayOutputStream;
