@@ -1,3 +1,11 @@
+/*
+  @author   Sandoplay
+  @project  Triangle
+  @class    Triangle
+  @version  1.0.0
+  @since    08/10/2026
+*/
+
 import java.util.Arrays;
 
 /**

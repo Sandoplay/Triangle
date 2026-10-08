@@ -1,3 +1,11 @@
+/*
+  @author   Sandoplay
+  @project  Triangle
+  @class    Main
+  @version  1.0.0
+  @since    08/10/2026
+*/
+
 import java.io.PrintStream;
 
 /** Demonstrates triangle calculations with optional command-line side lengths. */

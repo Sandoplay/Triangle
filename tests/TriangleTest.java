@@ -1,3 +1,11 @@
+/*
+  @author   Sandoplay
+  @project  Triangle
+  @class    TriangleTest
+  @version  1.0.0
+  @since    08/10/2026
+*/
+
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
