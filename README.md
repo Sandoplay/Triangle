@@ -82,8 +82,18 @@ Changes показують, яке саме поле змінилося і з я
 
 ## Запуск
 
-1. Запустити MongoDB (у терміналі від імені адміністратора): `net start MongoDB`.
-2. Запустити застосунок: `./mvnw spring-boot:run`.
-3. Swagger: `http://localhost:8080/swagger-ui.html`.
+1. Запустити MongoDB (у терміналі від імені адміністратора):
+
+```bash
+net start MongoDB
+```
+
+2. Запустити застосунок:
+
+```bash
+./mvnw spring-boot:run
+```
+
+3. Відкрити Swagger: http://localhost:8080/swagger-ui.html
 
 JaVers сам створює в базі `inno` колекції `jv_snapshots` і `jv_head_id`.
