@@ -9,6 +9,8 @@ package chnu.edu.inno.service;
   @since 27/09/2026 - 19.05
 */
 
+import chnu.edu.inno.exception.ItemAlreadyExistsException;
+import chnu.edu.inno.exception.ItemNotFoundException;
 import chnu.edu.inno.model.Item;
 import chnu.edu.inno.model.dto.response.ApiResponse;
 import chnu.edu.inno.model.dto.response.BaseMetaData;
@@ -16,6 +18,8 @@ import chnu.edu.inno.model.dto.response.PaginationMetaData;
 import chnu.edu.inno.repository.ItemRepository;
 import jakarta.annotation.PostConstruct;
 import lombok.AllArgsConstructor;
+import org.javers.spring.annotation.JaversAuditable;
+import org.javers.spring.annotation.JaversAuditableDelete;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -51,51 +55,48 @@ public class ItemService {
     }
 
     public ApiResponse<BaseMetaData, Item> getItemById(String id) {
-        return itemRepository.findById(id)
-                .map(item -> new ApiResponse<>(new BaseMetaData(200, true), item))
-                .orElseGet(() -> notFound(id));
+        Item item = itemRepository.findById(id).orElseThrow(() -> new ItemNotFoundException(id));
+        return new ApiResponse<>(new BaseMetaData(200, true), item);
     }
 
+    // JaVers commits the argument only when the method returns normally,
+    // so rejected requests (exceptions) never get into the audit
+    @JaversAuditable
     public ApiResponse<BaseMetaData, Item> createItem(Item item) {
         if (item.getId() != null && itemRepository.existsById(item.getId())) {
-            return new ApiResponse<>(new BaseMetaData(409, false, "Item with id " + item.getId() + " already exists"));
+            throw new ItemAlreadyExistsException(item.getId());
         }
-        if (item.getName() == null || item.getName().isBlank()) {
-            return badRequest("Name must not be empty");
-        }
-        if (item.getQuantity() < 0) {
-            return badRequest("Quantity cannot be negative");
-        }
+        validate(item);
         return new ApiResponse<>(new BaseMetaData(201, true), itemRepository.save(item));
     }
 
+    @JaversAuditable
     public ApiResponse<BaseMetaData, Item> updateItem(Item item) {
-        if (item.getId() == null || !itemRepository.existsById(item.getId())) {
-            return notFound(item.getId());
-        }
-        if (item.getName() == null || item.getName().isBlank()) {
-            return badRequest("Name must not be empty");
-        }
-        if (item.getQuantity() < 0) {
-            return badRequest("Quantity cannot be negative");
-        }
+        Item existing = itemRepository.findById(item.getId())
+                .orElseThrow(() -> new ItemNotFoundException(item.getId()));
+        validate(item);
+        // request body has no audit fields, keep the original creation info
+        item.setCreatedDate(existing.getCreatedDate());
+        item.setCreatedBy(existing.getCreatedBy());
         return new ApiResponse<>(new BaseMetaData(200, true), itemRepository.save(item));
     }
 
+    @JaversAuditableDelete(entity = Item.class)
     public ApiResponse<BaseMetaData, Item> deleteItemById(String id) {
         if (!itemRepository.existsById(id)) {
-            return notFound(id);
+            throw new ItemNotFoundException(id);
         }
         itemRepository.deleteById(id);
         return new ApiResponse<>(new BaseMetaData(200, true));
     }
 
-    private ApiResponse<BaseMetaData, Item> notFound(String id) {
-        return new ApiResponse<>(new BaseMetaData(404, false, "Item with id " + id + " not found"));
-    }
-
-    private ApiResponse<BaseMetaData, Item> badRequest(String message) {
-        return new ApiResponse<>(new BaseMetaData(400, false, message));
+    private void validate(Item item) {
+        if (item.getName() == null || item.getName().isBlank()) {
+            throw new IllegalArgumentException("Name must not be empty");
+        }
+        if (item.getQuantity() < 0) {
+            throw new IllegalArgumentException("Quantity cannot be negative");
+        }
     }
 
     public ApiResponse<PaginationMetaData, Item> getPage(Integer page, Integer size) {
