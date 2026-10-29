@@ -1,0 +1,6 @@
+Java 25.0.2, Windows 10, 16 CPUs
+
+version | cold ms (median of 5 JVMs) | warm ms median | warm ms min | allocated MB per run | counts retained KB | minimal -Xmx
+v1 | 1519.0 | 651.18 | 642.67 | 188.49 | - | 6.0 MB
+v2 | 60.9 | 8.69 | 8.23 | 7.23 | 566 | 2.0 MB
+v3 | 14.8 | 2.03 | 1.83 | 0.21 | 203 | 2.0 MB

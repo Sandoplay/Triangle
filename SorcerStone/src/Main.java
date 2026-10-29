@@ -1,6 +1,5 @@
 import java.io.IOException;
 import java.io.PrintStream;
-import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -8,8 +7,6 @@ import java.nio.file.Path;
 public final class Main {
     private static final Path DEFAULT_INPUT = Path.of("src", "txt", "harry.txt");
     private static final int DEFAULT_LIMIT = 30;
-    // The upstream book contains Windows-1252 punctuation (0x93 and 0x96).
-    private static final Charset INPUT_CHARSET = Charset.forName("windows-1252");
 
     private Main() {
     }
@@ -39,8 +36,8 @@ public final class Main {
             return 2;
         }
         long start = System.nanoTime();
-        try (var reader = Files.newBufferedReader(input, INPUT_CHARSET)) {
-            var frequencies = WordFrequencyAnalyzer.countWords(reader);
+        try (var stream = Files.newInputStream(input)) {
+            var frequencies = WordFrequencyAnalyzer.countWords(stream);
             for (var word : WordFrequencyAnalyzer.topWords(frequencies, limit)) {
                 output.println(word.word() + " " + word.count());
             }
