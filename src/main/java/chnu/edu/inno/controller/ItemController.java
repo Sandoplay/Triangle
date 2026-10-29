@@ -21,9 +21,8 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.AllArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @AllArgsConstructor
@@ -33,36 +32,41 @@ public class ItemController {
     private final ItemService itemService;
 
     @GetMapping("/{id}")
-    public Item getItemById(@PathVariable String id) {
-        return itemService.getItemById(id);
+    @Operation(summary = "Get item by id", description = "Returns the item wrapped in ApiResponse, or meta with code 404")
+    public ResponseEntity<ApiResponse<BaseMetaData, Item>> getItemById(@PathVariable String id) {
+        return toResponseEntity(itemService.getItemById(id));
     }
 
     @GetMapping()
-    public List<Item> getAllItems() {
-        return itemService.getAllItems();
+    @Operation(summary = "Get all items")
+    public ResponseEntity<ApiResponse<BaseMetaData, Item>> getAllItems() {
+        return toResponseEntity(itemService.getAllItems());
     }
 
     @PostMapping
-    public Item createItem(@RequestBody Item item) {
-        return itemService.createItem(item);
+    @Operation(summary = "Create item", description = "Returns 201 with created item, 400 on invalid data, 409 if id exists")
+    public ResponseEntity<ApiResponse<BaseMetaData, Item>> createItem(@RequestBody Item item) {
+        return toResponseEntity(itemService.createItem(item));
     }
 
-    @PutMapping
-    public Item updateItem(@RequestBody Item item) {
-        return itemService.updateItem(item);
+    @PutMapping("/{id}")
+    @Operation(summary = "Update item", description = "Returns 200 with updated item, 400 on invalid data, 404 if not found")
+    public ResponseEntity<ApiResponse<BaseMetaData, Item>> updateItem(@PathVariable String id, @RequestBody Item item) {
+        item.setId(id);
+        return toResponseEntity(itemService.updateItem(item));
     }
 
     @DeleteMapping("/{id}")
-    public void deleteItem(@PathVariable String id) {
-        itemService.deleteItemById(id);
+    @Operation(summary = "Delete item by id", description = "Returns 200 on success, 404 if not found")
+    public ResponseEntity<ApiResponse<BaseMetaData, Item>> deleteItem(@PathVariable String id) {
+        return toResponseEntity(itemService.deleteItemById(id));
+    }
+
+    private <M extends BaseMetaData> ResponseEntity<ApiResponse<M, Item>> toResponseEntity(ApiResponse<M, Item> response) {
+        return ResponseEntity.status(response.getMeta().getCode()).body(response);
     }
 
     //----------------  More ---------------------------
-
-    @GetMapping("/response/{id}")
-    public ApiResponse<BaseMetaData, Item> getItemByIdAsApiResponse(@PathVariable String id) {
-        return itemService.getItemByIdAsApiResponse(id);
-    }
 
     @GetMapping("/page")
     @Operation(

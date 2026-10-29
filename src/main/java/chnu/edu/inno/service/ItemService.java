@@ -46,32 +46,56 @@ public class ItemService {
      itemRepository.saveAll(items);
     }
 
-    public List<Item> getAllItems() {
-        return itemRepository.findAll();
+    public ApiResponse<BaseMetaData, Item> getAllItems() {
+        return new ApiResponse<>(new BaseMetaData(200, true), itemRepository.findAll());
     }
 
-    public Item getItemById(String id) {
-        return itemRepository.findById(id).orElse(null);
+    public ApiResponse<BaseMetaData, Item> getItemById(String id) {
+        return itemRepository.findById(id)
+                .map(item -> new ApiResponse<>(new BaseMetaData(200, true), item))
+                .orElseGet(() -> notFound(id));
     }
 
-    public Item createItem(Item item) {
-        return itemRepository.save(item);
-    }
-
-    public void deleteItemById(String id) {
-        itemRepository.deleteById(id);
-    }
-
-    public Item updateItem(Item item) {
-        return itemRepository.save(item);
-    }
-
-    public ApiResponse<BaseMetaData, Item> getItemByIdAsApiResponse(String id) {
-        Item item = itemRepository.findById(id).orElse(null);
-        if (item == null) {
-            return new ApiResponse<>(new BaseMetaData(404, false,"Not found"), null);
+    public ApiResponse<BaseMetaData, Item> createItem(Item item) {
+        if (item.getId() != null && itemRepository.existsById(item.getId())) {
+            return new ApiResponse<>(new BaseMetaData(409, false, "Item with id " + item.getId() + " already exists"));
         }
-        return new ApiResponse<>(new BaseMetaData(200, true), item);
+        if (item.getName() == null || item.getName().isBlank()) {
+            return badRequest("Name must not be empty");
+        }
+        if (item.getQuantity() < 0) {
+            return badRequest("Quantity cannot be negative");
+        }
+        return new ApiResponse<>(new BaseMetaData(201, true), itemRepository.save(item));
+    }
+
+    public ApiResponse<BaseMetaData, Item> updateItem(Item item) {
+        if (item.getId() == null || !itemRepository.existsById(item.getId())) {
+            return notFound(item.getId());
+        }
+        if (item.getName() == null || item.getName().isBlank()) {
+            return badRequest("Name must not be empty");
+        }
+        if (item.getQuantity() < 0) {
+            return badRequest("Quantity cannot be negative");
+        }
+        return new ApiResponse<>(new BaseMetaData(200, true), itemRepository.save(item));
+    }
+
+    public ApiResponse<BaseMetaData, Item> deleteItemById(String id) {
+        if (!itemRepository.existsById(id)) {
+            return notFound(id);
+        }
+        itemRepository.deleteById(id);
+        return new ApiResponse<>(new BaseMetaData(200, true));
+    }
+
+    private ApiResponse<BaseMetaData, Item> notFound(String id) {
+        return new ApiResponse<>(new BaseMetaData(404, false, "Item with id " + id + " not found"));
+    }
+
+    private ApiResponse<BaseMetaData, Item> badRequest(String message) {
+        return new ApiResponse<>(new BaseMetaData(400, false, message));
     }
 
     public ApiResponse<PaginationMetaData, Item> getPage(Integer page, Integer size) {
